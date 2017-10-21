@@ -36,6 +36,9 @@ public partial class Forthy
         public Chunk chunk;
         public int pc;
 
+        //  optional IO
+        public Action<string> stdout;
+
         public RuntimeContext()
         {
             const int DEFAULT_HEAP_SIZE = 20;
@@ -159,7 +162,7 @@ public partial class Forthy
                 var wordValue = word.AsCSharpString;
                 if (runtime.dictionary.ContainsKey(wordValue))
                 {
-                    var action = Variant.MakeRuntimeAction(runtime.dictionary[wordValue]);
+                    var action = Variant.Make(runtime.dictionary[wordValue]);
                     codes.Add(action);
                 }
                 else if (compile.dictionary.ContainsKey(wordValue))
@@ -198,6 +201,7 @@ public partial class Forthy
 
         return ls;
     }
+
 }
 
 
@@ -219,5 +223,10 @@ public static class ForthyUtils
         var value = ls[ls.Count - 1];
         ls.RemoveAt(ls.Count - 1);
         return value;
+    }
+
+    public static T Last<T>(this List<T> ls, int ix = -1)
+    {
+        return ls[ls.Count + ix];
     }
 }

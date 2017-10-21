@@ -74,7 +74,7 @@ public partial class Forthy
         public static Variant TRUE = new Variant() { type = Type.Bool, _value = true };
         public static Variant FALSE = new Variant() { type = Type.Bool, _value = false };
 
-        public static Variant MakeInt(int value)
+        public static Variant Make(int value)
         {
             return new Variant()
             {
@@ -83,7 +83,7 @@ public partial class Forthy
             };
         }
 
-        public static Variant MakeFloat(float value)
+        public static Variant Make(float value)
         {
             return new Variant()
             {
@@ -92,8 +92,36 @@ public partial class Forthy
             };
         }
 
+
+        public static Variant Make(string value)
+        {
+            ForthyUtils.Assert(value != null, "cant make null string");
+            return new Variant()
+            {
+                _value = value,
+                type = Type.String,
+            };
+        }
+
+        public static Variant Make(bool value)
+        {
+            return value ? TRUE : FALSE;
+        }
+
+        public static Variant Make(RuntimeAction value)
+        {
+            ForthyUtils.Assert(value != null, "cant make null action");
+            return new Variant()
+            {
+                _value = value,
+                type = Type.Action,
+            };
+        }
+
+        //  this one uses a seperate name to diff against Make String 
         public static Variant MakeWord(string token)
         {
+            ForthyUtils.Assert(token != null, "cant make null word");
             return new Variant()
             {
                 _value = token,
@@ -101,18 +129,9 @@ public partial class Forthy
             };
         }
 
-        public static Variant MakeRuntimeAction(RuntimeAction act)
-        {
-            return new Variant()
-            {
-                _value = act,
-                type = Type.Action,
-            };
-        }
-
         private static Regex INT_PATTERN = new Regex(@"^(\d+)i?$");
         private static Regex FLOAT_PATTERN = new Regex(@"^([\d\.]+)f?$");
-        private static Regex STRING_PATTERN = new Regex("^\"(.+)\"$");
+        private static Regex STRING_PATTERN = new Regex("^[\"'](.+)[\"']$");
 
         public static bool TryParse(string token, out Variant variant)
         {
@@ -234,17 +253,107 @@ public partial class Forthy
             ForthyUtils.Assert(lhs != null && rhs != null, "can't add null variant");
             if (lhs.type == Type.Integer && rhs.type == Type.Integer)
             {
-                return MakeInt(lhs.AsInt + rhs.AsInt);
+                return Make(lhs.AsInt + rhs.AsInt);
             }
             if (lhs.type == Type.Float || rhs.type == Type.Float)
             {
                 float lhsValue = lhs.type == Type.Integer ? lhs.AsInt : lhs.AsFloat;
                 float rhsValue = rhs.type == Type.Integer ? rhs.AsInt : rhs.AsFloat;
-                return MakeFloat(lhsValue + rhsValue);
+                return Make(lhsValue + rhsValue);
             }
 
             ForthyUtils.Error(string.Format("bad type for add: {0} + {1}", lhs.type, rhs.type));
             return null;
+        }
+
+        public static Variant operator -(Variant lhs, Variant rhs)
+        {
+            ForthyUtils.Assert(lhs != null && rhs != null, "can't minus null variant");
+            if (lhs.type == Type.Integer && rhs.type == Type.Integer)
+            {
+                return Make(lhs.AsInt - rhs.AsInt);
+            }
+            if (lhs.type == Type.Float || rhs.type == Type.Float)
+            {
+                float lhsValue = lhs.type == Type.Integer ? lhs.AsInt : lhs.AsFloat;
+                float rhsValue = rhs.type == Type.Integer ? rhs.AsInt : rhs.AsFloat;
+                return Make(lhsValue - rhsValue);
+            }
+
+            ForthyUtils.Error(string.Format("bad type for minus: {0} - {1}", lhs.type, rhs.type));
+            return null;
+        }
+
+        public static Variant operator *(Variant lhs, Variant rhs)
+        {
+            ForthyUtils.Assert(lhs != null && rhs != null, "can't mul null variant");
+            if (lhs.type == Type.Integer && rhs.type == Type.Integer)
+            {
+                return Make(lhs.AsInt * rhs.AsInt);
+            }
+            if (lhs.type == Type.Float || rhs.type == Type.Float)
+            {
+                float lhsValue = lhs.type == Type.Integer ? lhs.AsInt : lhs.AsFloat;
+                float rhsValue = rhs.type == Type.Integer ? rhs.AsInt : rhs.AsFloat;
+                return Make(lhsValue * rhsValue);
+            }
+
+            ForthyUtils.Error(string.Format("bad type for mul: {0} * {1}", lhs.type, rhs.type));
+            return null;
+        }
+
+        public static Variant operator /(Variant lhs, Variant rhs)
+        {
+            ForthyUtils.Assert(lhs != null && rhs != null, "can't div null variant");
+            if (lhs.type == Type.Integer && rhs.type == Type.Integer)
+            {
+                return Make(lhs.AsInt / rhs.AsInt);
+            }
+            if (lhs.type == Type.Float || rhs.type == Type.Float)
+            {
+                float lhsValue = lhs.type == Type.Integer ? lhs.AsInt : lhs.AsFloat;
+                float rhsValue = rhs.type == Type.Integer ? rhs.AsInt : rhs.AsFloat;
+                return Make(lhsValue / rhsValue);
+            }
+
+            ForthyUtils.Error(string.Format("bad type for mul: {0} / {1}", lhs.type, rhs.type));
+            return null;
+        }
+
+        public static bool operator >(Variant lhs, Variant rhs)
+        {
+            ForthyUtils.Assert(lhs != null && rhs != null, "can't gt null variant");
+            if (lhs.type == Type.Integer && rhs.type == Type.Integer)
+            {
+                return lhs.AsInt > rhs.AsInt;
+            }
+            if (lhs.type == Type.Float || rhs.type == Type.Float)
+            {
+                float lhsValue = lhs.type == Type.Integer ? lhs.AsInt : lhs.AsFloat;
+                float rhsValue = rhs.type == Type.Integer ? rhs.AsInt : rhs.AsFloat;
+                return lhsValue > rhsValue;
+            }
+
+            ForthyUtils.Error(string.Format("bad type for gt: {0} > {1}", lhs.type, rhs.type));
+            return false;
+        }
+
+        public static bool operator <(Variant lhs, Variant rhs)
+        {
+            ForthyUtils.Assert(lhs != null && rhs != null, "can't lt null variant");
+            if (lhs.type == Type.Integer && rhs.type == Type.Integer)
+            {
+                return lhs.AsInt < rhs.AsInt;
+            }
+            if (lhs.type == Type.Float || rhs.type == Type.Float)
+            {
+                float lhsValue = lhs.type == Type.Integer ? lhs.AsInt : lhs.AsFloat;
+                float rhsValue = rhs.type == Type.Integer ? rhs.AsInt : rhs.AsFloat;
+                return lhsValue < rhsValue;
+            }
+
+            ForthyUtils.Error(string.Format("bad type for lt: {0} < {1}", lhs.type, rhs.type));
+            return false;
         }
 
         public override string ToString()
@@ -261,7 +370,7 @@ public partial class Forthy
                 case Type.Float:
                     return _value.ToString();
                 case Type.String:
-                    return string.Format("\"{0}\"", _value.ToString());
+                    return string.Format("{0}", _value.ToString());
                 default:
                     ForthyUtils.Error(string.Format("unhandled type {0}", type));
                     return null;

@@ -20,6 +20,7 @@ public partial class Forthy
 
         public override void Execute(RuntimeContext ctx)
         {
+            ForthyUtils.Assert(_call != null, "missing call");
             _call(ctx);
             return;
         }
@@ -34,13 +35,103 @@ public partial class Forthy
         var lhs = ctx.dataStack.Pop();
         ctx.dataStack.Add(lhs + rhs);
     });
-
-    public static Variant rPush = Variant.MakeRuntimeAction(_rPush_action);
-
-    static Dictionary<string, RuntimeAction> _BULITIN_RUNTIME_DICTIONARY = new Dictionary<string, RuntimeAction>()
+    private static SimpleAction _rSub_action = new SimpleAction((ctx) =>
     {
-        { "+", _rAdd_action },
-    };
+        var rhs = ctx.dataStack.Pop();
+        var lhs = ctx.dataStack.Pop();
+        ctx.dataStack.Add(lhs - rhs);
+    });
+    private static SimpleAction _rMul_action = new SimpleAction((ctx) =>
+    {
+        var rhs = ctx.dataStack.Pop();
+        var lhs = ctx.dataStack.Pop();
+        ctx.dataStack.Add(lhs * rhs);
+    });
+    private static SimpleAction _rDiv_action = new SimpleAction((ctx) =>
+    {
+        var rhs = ctx.dataStack.Pop();
+        var lhs = ctx.dataStack.Pop();
+        ctx.dataStack.Add(lhs / rhs);
+    });
 
+    private static SimpleAction _rEq_action = new SimpleAction((ctx) =>
+    {
+        var rhs = ctx.dataStack.Pop();
+        var lhs = ctx.dataStack.Pop();
+        ctx.dataStack.Add(Variant.Make(lhs == rhs));
+    });
+
+    private static SimpleAction _rGt_action = new SimpleAction((ctx) =>
+    {
+        var rhs = ctx.dataStack.Pop();
+        var lhs = ctx.dataStack.Pop();
+        ctx.dataStack.Add(Variant.Make(lhs > rhs));
+    });
+
+    private static SimpleAction _rLt_action = new SimpleAction((ctx) =>
+    {
+        var rhs = ctx.dataStack.Pop();
+        var lhs = ctx.dataStack.Pop();
+        ctx.dataStack.Add(Variant.Make(lhs < rhs));
+    });
+
+    private static SimpleAction _rSwap_action = new SimpleAction((ctx) =>
+    {
+        var rhs = ctx.dataStack.Pop();
+        var lhs = ctx.dataStack.Pop();
+        ctx.dataStack.Add(rhs);
+        ctx.dataStack.Add(lhs);
+    });
+
+    private static SimpleAction _rDup_action = new SimpleAction((ctx) =>
+    {
+        //  Variant is immutable so there's no need to clone
+        ctx.dataStack.Add(ctx.dataStack.Last());
+    });
+
+    private static SimpleAction _rDrop_action = new SimpleAction((ctx) =>
+    {
+        ctx.dataStack.Pop();
+    });
+
+    private static SimpleAction _rOver_action = new SimpleAction((ctx) =>
+    {
+        ctx.dataStack.Add(ctx.dataStack.Last(-2));
+    });
+
+    private static SimpleAction _rDump_action = new SimpleAction((ctx) =>
+    {
+        if (ctx.stdout != null)
+            ctx.stdout(ctx.ToString());
+    });
+
+    private static SimpleAction _rDot_action = new SimpleAction((ctx) =>
+    {
+        if (ctx.stdout != null)
+            ctx.stdout(ctx.dataStack.Pop().ToString());
+    });
+
+    public static Variant rPush = Variant.Make(_rPush_action);
+
+    //  here's a code ordering issue, as static field initialize order depend on declare order
+    private static Dictionary<string, RuntimeAction> _BULITIN_RUNTIME_DICTIONARY = new Dictionary<string, RuntimeAction>()
+    {
+        //  Arithmetic
+        { "+",  _rAdd_action },
+        { "-",  _rSub_action },
+        { "*",  _rMul_action },
+        { "/",  _rDiv_action },
+        { "=",  _rEq_action  },
+        { ">",  _rGt_action  },
+        { "<",  _rLt_action  },
+
+        //  Forth Core Words
+        { "swap",   _rSwap_action   },
+        { "dup",    _rDup_action    },
+        { "over",   _rOver_action   },
+        { "drop",   _rDrop_action   },
+        { "dump",   _rDump_action   },
+        { ".",      _rDot_action    },
+    };
 
 }
