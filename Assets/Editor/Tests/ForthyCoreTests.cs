@@ -118,9 +118,8 @@ public class ForthyCoreTests
         _forthy.LoadAndRun("\"forthy\" .");
         Assert.AreEqual(lastOutput, "forthy");
 
-        //  TODO handle single quote and white spaced string
-        //_forthy.LoadAndRun("'single quote' .");
-        //Assert.AreEqual(lastOutput, "forthy");
+        _forthy.LoadAndRun("'single quote' .");
+        Assert.AreEqual(lastOutput, "single quote");
 
         _forthy.LoadAndRun("1 2 3 4 5 dump");
         Assert.True(lastOutput.StartsWith("stack:\t[1,2,3,4,5]"));

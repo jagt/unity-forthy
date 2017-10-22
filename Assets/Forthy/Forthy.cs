@@ -113,11 +113,13 @@ public partial class Forthy
 
     public RuntimeContext runtime;
     public CompileContext compile;
+    private Tokenizer _tokenizer;
 
     public Forthy()
     {
         runtime = new RuntimeContext();
         compile = new CompileContext();
+        _tokenizer = new Tokenizer(IsInRuntimeOrCompileDictionary);
 
         return;
     }
@@ -176,32 +178,16 @@ public partial class Forthy
         return chunk;
     }
 
-
-    private static char[] _SPLIT = { ' ', '\t', '\r', '\n' };
-    private List<Variant> Tokenize(string source)
+    private bool IsInRuntimeOrCompileDictionary(string token)
     {
-        var ls = new List<Variant>();
-        var tokens = source.Split(_SPLIT, StringSplitOptions.RemoveEmptyEntries);
-        foreach (var token in tokens)
-        {
-            if (runtime.dictionary.ContainsKey(token)
-                || compile.dictionary.ContainsKey(token))
-            {
-                ls.Add(Variant.MakeWord(token));
-            }
-            else
-            {
-                Variant variant;
-                bool success = Variant.TryParse(token, out variant);
-                if (!success)
-                    throw new ForthyException(string.Format("bad token {0}", token));
-                ls.Add(variant);
-            }
-        }
-
-        return ls;
+        return runtime.dictionary.ContainsKey(token)
+            || compile.dictionary.ContainsKey(token);
     }
 
+    private List<Variant> Tokenize(string source)
+    {
+        return _tokenizer.Tokenize(source);
+    }
 }
 
 
