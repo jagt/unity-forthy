@@ -27,14 +27,22 @@ public partial class Forthy
         }
     }
 
+    public struct StoredFrame
+    {
+        public Chunk chunk;
+        public int pc;
+    }
+
     public class RuntimeContext
     {
         public List<Variant> dataStack;
         public List<Variant> heap;
         public int heapNext;
-        public Dictionary<string, RuntimeAction> dictionary;
+        public Dictionary<string, Variant> dictionary;
+        public Stack<StoredFrame> storedFrames;
         public Chunk chunk;
         public int pc;
+
 
         //  optional IO
         public Action<string> stdout;
@@ -48,7 +56,9 @@ public partial class Forthy
             for (int ix = 0; ix < DEFAULT_HEAP_SIZE; ix++)
                 heap.Add(null);
 
-            dictionary = new Dictionary<string, RuntimeAction>(_BULITIN_RUNTIME_DICTIONARY);
+            storedFrames = new Stack<StoredFrame>();
+
+            dictionary = new Dictionary<string, Variant>(_BULITIN_RUNTIME_DICTIONARY);
 
             return;
         }
@@ -164,7 +174,7 @@ public partial class Forthy
                 var wordValue = word.AsCSharpString;
                 if (runtime.dictionary.ContainsKey(wordValue))
                 {
-                    var action = Variant.Make(runtime.dictionary[wordValue]);
+                    var action = runtime.dictionary[wordValue];
                     codes.Add(action);
                 }
                 else if (compile.dictionary.ContainsKey(wordValue))

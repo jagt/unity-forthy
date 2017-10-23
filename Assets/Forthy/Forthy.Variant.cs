@@ -15,6 +15,7 @@ public partial class Forthy
         {
             Word,       //  Forthy Word
             Action,     //  Forthy Runtime Action
+            Chunk,      //  Forthy Chunk
             Bool,       //  Boolean
             Integer,    //  Integer, eg: 42, 43i
             Float,      //  Float, eg: 12.3, 12.3f
@@ -71,6 +72,14 @@ public partial class Forthy
             }
         }
 
+        public Chunk AsChunk
+        {
+            get
+            {
+                return Cast<Chunk>();
+            }
+        }
+
         public static Variant TRUE = new Variant() { type = Type.Bool, _value = true };
         public static Variant FALSE = new Variant() { type = Type.Bool, _value = false };
 
@@ -91,7 +100,6 @@ public partial class Forthy
                 type = Type.Float,
             };
         }
-
 
         public static Variant Make(string value)
         {
@@ -115,6 +123,16 @@ public partial class Forthy
             {
                 _value = value,
                 type = Type.Action,
+            };
+        }
+
+        public static Variant Make(Chunk value)
+        {
+            ForthyUtils.Assert(value != null, "cant make null chunk");
+            return new Variant()
+            {
+                _value = value,
+                type = Type.Chunk,
             };
         }
 
@@ -364,6 +382,8 @@ public partial class Forthy
                     return string.Format("[Action]{0}", _value.GetType().Name);
                 case Type.Word:
                     return string.Format("[Word]{0}", _value.ToString());
+                case Type.Chunk:
+                    return string.Format("[Chunk]{0}", _value.ToString());
                 case Type.Bool:
                     return AsBool == true ? "true" : "false";
                 case Type.Integer:
